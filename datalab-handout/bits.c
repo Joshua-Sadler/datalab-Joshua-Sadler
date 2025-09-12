@@ -1,7 +1,6 @@
 /* 
  * CS:APP Data Lab 
  * 
- * <Please put your name and userid here>
  * <Name: Joshua Sadler ID: 101979465>
  * 
  * bits.c - Source file with your solutions to the Lab.
@@ -166,27 +165,31 @@ NOTES:
    the following additions from Amendment 1 to the fifth edition:
    - 56 emoji characters
    - 285 hentaigana
-   - 3 additional Zanabazar Square characters */
-/* 
- * copyLSB - set all bits of result to least significant bit of x
- *   Example: copyLSB(5) = 0xFFFFFFFF, copyLSB(6) = 0x00000000
- *   Legal ops: ! ~ & ^ | + << >>
- *   Max ops: 5
- *   Rating: 2
+   - 3 additional Zanabazar Square characters
+*/
+
+/*
+ * copyLSB - set all bits of result to least significant bit of x.
+ * Shift LSB into sign bit, then arithmetic right shift
+ * spreads it across all 32 bits.
  */
 int copyLSB(int x) {
     return (x << 31) >> 31;
 }
-/* 
- * evenBits - return word with all even-numbered bits set to 1
- *   Legal ops: ! ~ & ^ | + << >>
- *   Max ops: 8
- *   Rating: 1
+
+/*
+ * evenBits - return word with all even-numbered bits set to 1.
+ * Build mask by starting with 0x55 (01010101) and replicating it across 32 bits 
+ * with shifts and ORs.
  */
 int evenBits(void) {
-  return 2;
+    int mask = 0x55;
+    mask = mask | (mask << 8);
+    mask = mask | (mask << 16);
+    return mask;
 }
-/* 
+
+/*
  * float_abs - Return bit-level equivalent of absolute value of f for
  *   floating point argument f.
  *   Both the argument and result are passed as unsigned int's, but
@@ -198,8 +201,12 @@ int evenBits(void) {
  *   Rating: 2
  */
 unsigned float_abs(unsigned uf) {
-  return 2;
+    unsigned exp = (uf >> 23) & 0xFF;
+    unsigned frac = uf & 0x7FFFFF;
+
+    return (exp == 0xFF && frac != 0) ? uf : (uf & 0x7FFFFFFF);
 }
+
 /*
  * isTmin - returns 1 if x is the minimum, two's complement number,
  *     and 0 otherwise 
