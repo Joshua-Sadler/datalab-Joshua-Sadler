@@ -2,6 +2,7 @@
  * CS:APP Data Lab 
  * 
  * <Please put your name and userid here>
+ * <Name: Joshua Sadler ID: 101979465>
  * 
  * bits.c - Source file with your solutions to the Lab.
  *          This is the file you will hand in to your instructor.
@@ -174,7 +175,7 @@ NOTES:
  *   Rating: 2
  */
 int copyLSB(int x) {
-  return 2;
+    return (x << 31) >> 31;
 }
 /* 
  * evenBits - return word with all even-numbered bits set to 1
