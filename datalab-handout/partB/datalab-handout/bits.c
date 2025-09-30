@@ -40,26 +40,7 @@ int greatestBitPos(int x) {
  *   Rating: 4
  */
 int satAdd(int x, int y) {
-    int sum = x + y;
-
-    int tmin = 1 << 31;
-    int tmax = ~tmin;
-
-    int sx = x >> 31;
-    int sy = y >> 31;
-    int ss = sum >> 31;
-
-    int ov = ~(sx ^ sy) & (sx ^ ss);
-    int sat = (tmax & ~sx) | (tmin & sx);
-    int base = (sum & ~ov) | (sat & ov);
-
-    // special case Tmin + Tmin → force to sum (which is 0)
-    int xIsTmin = !(x ^ tmin);
-    int yIsTmin = !(y ^ tmin);
-    int bothTmin = xIsTmin & yIsTmin;
-    int override = ~(!bothTmin) + 1;   // all 1s if both Tmin
-
-    return (base & ~override) | (sum & override);   
+  
 }
 
 /*
@@ -72,13 +53,13 @@ int satAdd(int x, int y) {
  *   Rating: 3
  */
 int satMul2(int x) {
-    int twice = x << 1;
-    int sx = x >> 31;
-    int ov = ((x ^ twice) >> 31) | !(x ^ (1 << 31));
+    int doubled = x << 1;
+    int signX = x >> 31;
+    int signD = doubled >> 31;
+    int overflow = signX ^ signD;
+    int tmax = ~(1 << 31);
     int tmin = 1 << 31;
-    int tmax = ~tmin;
-    int sat = (tmax & ~sx) | (tmin & sx);
-    return (twice & ~ov) | (sat & ov);
+    return (overflow & ((~signX & tmax) | (signX & tmin))) | (~overflow & doubled);
 }
 /*
  * satMul3 - multiplies by 3, saturating to Tmin or Tmax if overflow
@@ -92,22 +73,7 @@ int satMul2(int x) {
  *  Rating: 3
  */
 int satMul3(int x) {
-    int sx = x >> 31;
-    int dbl = x << 1;
-    int sum = dbl + x;
-    int ovA = (x ^ dbl) >> 31;
-    int sd = dbl >> 31;
-    int ss = sum >> 31;
-    int same = ~(sd ^ sx);
-    int diffR = sd ^ ss;
-    int ovB = same & diffR;
-    int ov = ovA | ovB;
-    int tmin = 1 << 31;
-    int tmax = ~tmin;
-    int sat = (tmax & ~sx) | (tmin & sx);
-    int isTmax = !(x ^ tmax);       // x == Tmax?
-    int fix = tmax - 2;             // 0x7ffffffd
-    return (sum & ~ov) | (sat & ov) | (fix & ~ov & ~sx & ~isTmax);
+    
 }
 
 /* 
