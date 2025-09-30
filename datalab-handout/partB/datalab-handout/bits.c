@@ -14,14 +14,14 @@
  *   Rating: 4 
  */
 int greatestBitPos(int x) {
-// Spread the highest bit to the right
-    x |= x >> 1;
-    x |= x >> 2;
-    x |= x >> 4;
-    x |= x >> 8;
-    x |= x >> 16;
+    unsigned u = (unsigned) x;   // work with unsigned to avoid sign extension
+    u |= u >> 1;
+    u |= u >> 2;
+    u |= u >> 4;
+    u |= u >> 8;
+    u |= u >> 16;
     // Isolate highest bit
-    return x & ~(x >> 1);
+    return (int)(u & ~(u >> 1));
 }
 
 /*
