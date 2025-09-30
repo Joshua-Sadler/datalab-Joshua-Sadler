@@ -53,27 +53,17 @@ int satAdd(int x, int y) {
  *   Rating: 3
  */
 int satMul2(int x) {
-    int doubled = x << 1;
-    int tmin = 1 << 31;
-    int tmax = ~tmin;
+    int doubled = x << 1;          // multiply by 2
+    int xSign = x >> 31;           // sign of original
+    int dSign = doubled >> 31;     // sign after doubling
+    int overflow = xSign ^ dSign;  // 1 if signs differ
 
-    /* Special case Tmin → return 0 */
-    if (!(x ^ tmin)) {
-        return 0;
-    }
+    // If overflow: return max or min depending on original sign
+    int max = ~(1 << 31);          // INT_MAX = 0x7fffffff
+    int min = 1 << 31;             // INT_MIN = 0x80000000
 
-    /* Positive overflow: x > Tmax/2 */
-    if (x > tmax >> 1) {
-        return tmax;
-    }
-
-    /* Negative overflow: x < Tmin/2 */
-    if (x < tmin >> 1) {
-        return tmin;
-    }
-
-    /* Otherwise safe */
-    return doubled;
+    return (overflow & (xSign & min | ~xSign & max)) | (~overflow & doubled);
+}
 }
 /*
  * satMul3 - multiplies by 3, saturating to Tmin or Tmax if overflow
