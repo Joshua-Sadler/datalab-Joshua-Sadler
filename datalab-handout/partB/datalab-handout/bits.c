@@ -41,13 +41,12 @@ int greatestBitPos(int x) {
  */
 int satAdd(int x, int y) {
     int sum = x + y;
-    int mask = (sum ^ x) & (sum ^ y);  // negative if overflow
-    int ov = mask >> 31;
+    int no_overflow_mask = ((x ^ y) | ~(sum ^ x)) >> 31;
     int tmin = 1 << 31;
-    int tmax = ~tmin;
-    int sx = sum >> 31;
-    int sat = (tmax & ~sx) | (tmin & sx);
-    return (sum & ~ov) | (sat & ov);
+    int sum_is_neg = sum >> 31;
+    // return (no_overflow_mask & sum) |
+    //     (~no_overflow_mask & (sum < 0 ? tmax : tmin));
+    return (no_overflow_mask & sum) | (~no_overflow_mask & (tmin ^ sum_is_neg));
 }
 
 /*
