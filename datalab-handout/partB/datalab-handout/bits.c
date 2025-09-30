@@ -14,14 +14,19 @@
  *   Rating: 4 
  */
 int greatestBitPos(int x) {
-    unsigned u = (unsigned) x;   // work with unsigned to avoid sign extension
-    u |= u >> 1;
-    u |= u >> 2;
-    u |= u >> 4;
-    u |= u >> 8;
-    u |= u >> 16;
-    // Isolate highest bit
-    return (int)(u & ~(u >> 1));
+    /* Spread highest set bit, then isolate it. Special case for sign bit */
+    int spread = x;
+    spread |= spread >> 1;
+    spread |= spread >> 2;
+    spread |= spread >> 4;
+    spread |= spread >> 8;
+    spread |= spread >> 16;
+    /* Candidate for non-sign-bit */
+    int pos = spread & ~(spread >> 1);
+    /* Sign bit mask */
+    int highBit = 1 << 31;
+    /* If x is negative, return sign bit; else return pos */
+    return pos | (x & highBit);
 }
 
 /*
