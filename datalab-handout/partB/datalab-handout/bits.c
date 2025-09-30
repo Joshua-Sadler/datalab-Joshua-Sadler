@@ -59,7 +59,12 @@ int satMul2(int x) {
     int tmin = 1 << 31;
     int tmax = ~tmin;
 
-    int overflow = (signX ^ signD) & !!(x ^ tmin);
+    /* Overflow if sign flipped and x is neither Tmin nor Tmax */
+    int notTmin = !!(x ^ tmin);
+    int notTmax = !!(x ^ tmax);
+    int overflow = (signX ^ signD) & notTmin & notTmax;
+
+    /* Pick saturation value */
     int satVal = (signX & tmin) | (~signX & tmax);
 
     return (overflow & satVal) | (~overflow & doubled);
