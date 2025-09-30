@@ -40,7 +40,7 @@ int greatestBitPos(int x) {
  *   Rating: 4
  */
 int satAdd(int x, int y) {
-  
+ return 2; 
 }
 
 /*
@@ -56,14 +56,13 @@ int satMul2(int x) {
     int doubled = x << 1;
     int signX = x >> 31;
     int signD = doubled >> 31;
-    int overflow = signX ^ signD;
-    int tmax = ~(1 << 31);
     int tmin = 1 << 31;
-    int isTmin = !(x ^ tmin);
-    return (isTmin & 0) |
-           (~isTmin & ((overflow & ((~signX & tmax) | (signX & tmin))) | (~overflow & doubled)));
-}
+    int tmax = ~tmin;
 
+    int overflow = (signX ^ signD) & !!(x ^ tmin);
+    int satVal = (signX & tmin) | (~signX & tmax);
+
+    return (overflow & satVal) | (~overflow & doubled);
 }
 /*
  * satMul3 - multiplies by 3, saturating to Tmin or Tmax if overflow
@@ -77,7 +76,7 @@ int satMul2(int x) {
  *  Rating: 3
  */
 int satMul3(int x) {
-    
+return 2;
 }
 
 /* 
