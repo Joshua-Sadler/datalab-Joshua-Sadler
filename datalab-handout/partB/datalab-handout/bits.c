@@ -53,12 +53,26 @@ int satAdd(int x, int y) {
  *   Rating: 3
  */
 int satMul2(int x) {
-    int x_mul_2 = x << 1;
-    int overflow_mask = (x_mul_2 ^ x) >> 31;
+    int doubled = x << 1;
     int tmin = 1 << 31;
-    int x_mul_2_is_neg = x_mul_2 >> 31;
-    return (~overflow_mask & x_mul_2) |
-           (overflow_mask & (tmin ^ (x_mul_2_is_neg)));
+    int tmax = ~tmin;
+
+    int top2 = x >> 30;      /* extract top 2 bits of x */
+    int isTmin = !(x ^ tmin);
+
+    /* Overflow occurs if top2 == 01 (positive overflow) or top2 == 11 (negative overflow) */
+    int posOverflow = !(top2 ^ 1);   /* top2 == 01 */
+    int negOverflow = !(top2 ^ -1);  /* top2 == 11 */
+    int overflow = (posOverflow | negOverflow) & !isTmin;
+
+    /* Pick saturation value */
+    int satVal = (posOverflow & tmax) | (negOverflow & tmin);
+
+    /* Special case Tmin */
+    int result = isTmin ? 0 : doubled;
+
+    /* If overflow: use satVal, else use doubled (or Tmin special) */
+    return (overflow & satVal) | (~overflow & result);
 }
 /*
  * satMul3 - multiplies by 3, saturating to Tmin or Tmax if overflow
