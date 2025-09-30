@@ -42,27 +42,24 @@ int greatestBitPos(int x) {
 int satAdd(int x, int y) {
     int sum = x + y;
 
-    // build Tmin/Tmax
     int tmin = 1 << 31;
     int tmax = ~tmin;
 
-    // detect overflow
     int sx = x >> 31;
     int sy = y >> 31;
     int ss = sum >> 31;
-    int ov = ~(sx ^ sy) & (sx ^ ss);
 
-    // select saturation value
+    int ov = ~(sx ^ sy) & (sx ^ ss);
     int sat = (tmax & ~sx) | (tmin & sx);
     int base = (sum & ~ov) | (sat & ov);
 
-    // special case Tmin + Tmin
+    // special case Tmin + Tmin → force to sum (which is 0)
     int xIsTmin = !(x ^ tmin);
     int yIsTmin = !(y ^ tmin);
     int bothTmin = xIsTmin & yIsTmin;
-    int bothMask = ~(!bothTmin) + 1;   // 0xFFFFFFFF if both Tmin
+    int override = ~(!bothTmin) + 1;   // all 1s if both Tmin
 
-    return (base & ~bothMask) | (sum & bothMask);
+    return (base & ~override) | (sum & override);   
 }
 
 /*
