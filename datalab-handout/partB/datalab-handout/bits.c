@@ -44,12 +44,17 @@ int satAdd(int x, int y) {
     int signX = x >> 31;
     int signY = y >> 31;
     int signS = sum >> 31;
+
+    // detect overflow: when x and y have same sign but sum differs
     int posOverflow = ~signX & ~signY & signS;
     int negOverflow = signX & signY & ~signS;
+
     int tmax = ~(1 << 31);
     int tmin = 1 << 31;
-    return (posOverflow & tmax) | (negOverflow & tmin) | (~(posOverflow | negOverflow) & sum);
-}
+
+    return (posOverflow & tmax) |
+           (negOverflow & tmin) |
+           (~(posOverflow | negOverflow) & sum);
 }
 
 /*
@@ -63,12 +68,13 @@ int satAdd(int x, int y) {
  */
 int satMul2(int x) {
     int doubled = x << 1;
-    int overflow = (doubled ^ x) >> 31;
+    // overflow occurs if sign changes after doubling
+    int overflow = (x ^ doubled) >> 31;
     int tmax = ~(1 << 31);
     int tmin = 1 << 31;
+
     return (overflow & ((x >> 31) ^ tmax)) | (~overflow & doubled);
 }
-
 /*
  * satMul3 - multiplies by 3, saturating to Tmin or Tmax if overflow
  *  Examples: satMul3(0x10000000) = 0x30000000
@@ -83,9 +89,11 @@ int satMul2(int x) {
 int satMul3(int x) {
     int mul2 = x << 1;
     int mul3 = mul2 + x;
-    int overflow = ((mul2 ^ x) | (mul3 ^ x)) >> 31;
+    // overflow if sign differs between x and mul2, or x and mul3
+    int overflow = ((x ^ mul2) | (x ^ mul3)) >> 31;
     int tmax = ~(1 << 31);
     int tmin = 1 << 31;
+
     return (overflow & ((x >> 31) ^ tmax)) | (~overflow & mul3);
 }
 
