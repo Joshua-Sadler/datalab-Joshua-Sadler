@@ -59,7 +59,11 @@ int satMul2(int x) {
     int overflow = signX ^ signD;
     int tmax = ~(1 << 31);
     int tmin = 1 << 31;
-    return (overflow & ((~signX & tmax) | (signX & tmin))) | (~overflow & doubled);
+    int isTmin = !(x ^ tmin);
+    return (isTmin & 0) |
+           (~isTmin & ((overflow & ((~signX & tmax) | (signX & tmin))) | (~overflow & doubled)));
+}
+
 }
 /*
  * satMul3 - multiplies by 3, saturating to Tmin or Tmax if overflow
