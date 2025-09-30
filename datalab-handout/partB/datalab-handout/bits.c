@@ -14,23 +14,14 @@
  *   Rating: 4 
  */
 int greatestBitPos(int x) {
-  int nonZeroMask;
-
-  /* Spread the highest 1-bit down */
-  x |= x >> 1;
-  x |= x >> 2;
-  x |= x >> 4;
-  x |= x >> 8;
-  x |= x >> 16;
-
-  /* Isolate the highest 1-bit */
-  x = x & ~(x >> 1);
-
-  /* Build mask: all 1s if x != 0, else 0 (uses only !, ~, +) */
-  nonZeroMask = !!x;          /* 1 if nonzero, 0 if zero */
-  nonZeroMask = ~nonZeroMask + 1;
-
-  return x & nonZeroMask;
+// Spread the highest bit to the right
+    x |= x >> 1;
+    x |= x >> 2;
+    x |= x >> 4;
+    x |= x >> 8;
+    x |= x >> 16;
+    // Isolate highest bit
+    return x & ~(x >> 1);
 }
 
 /*
