@@ -53,22 +53,12 @@ int satAdd(int x, int y) {
  *   Rating: 3
  */
 int satMul2(int x) {
-
-    int doubled = x << 1;
-    int signX = x >> 31;
-    int signD = doubled >> 31;
+    int x_mul_2 = x << 1;
+    int overflow_mask = (x_mul_2 ^ x) >> 31;
     int tmin = 1 << 31;
-    int tmax = ~tmin;
-
-    /* Overflow if sign flipped and x is neither Tmin nor Tmax */
-    int notTmin = !!(x ^ tmin);
-    int notTmax = !!(x ^ tmax);
-    int overflow = (signX ^ signD) & notTmin & notTmax;
-
-    /* Pick saturation value */
-    int satVal = (signX & tmin) | (~signX & tmax);
-
-    return (overflow & satVal) | (~overflow & doubled);
+    int x_mul_2_is_neg = x_mul_2 >> 31;
+    return (~overflow_mask & x_mul_2) |
+           (overflow_mask & (tmin ^ (x_mul_2_is_neg)));
 }
 /*
  * satMul3 - multiplies by 3, saturating to Tmin or Tmax if overflow
