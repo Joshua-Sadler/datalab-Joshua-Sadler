@@ -40,7 +40,16 @@ int greatestBitPos(int x) {
  *   Rating: 4
  */
 int satAdd(int x, int y) {
-  return 2;
+    int sum = x + y;
+    int signX = x >> 31;
+    int signY = y >> 31;
+    int signS = sum >> 31;
+    int posOverflow = ~signX & ~signY & signS;
+    int negOverflow = signX & signY & ~signS;
+    int tmax = ~(1 << 31);
+    int tmin = 1 << 31;
+    return (posOverflow & tmax) | (negOverflow & tmin) | (~(posOverflow | negOverflow) & sum);
+}
 }
 
 /*
@@ -53,7 +62,11 @@ int satAdd(int x, int y) {
  *   Rating: 3
  */
 int satMul2(int x) {
-  return 2;
+    int doubled = x << 1;
+    int overflow = (doubled ^ x) >> 31;
+    int tmax = ~(1 << 31);
+    int tmin = 1 << 31;
+    return (overflow & ((x >> 31) ^ tmax)) | (~overflow & doubled);
 }
 
 /*
@@ -68,7 +81,12 @@ int satMul2(int x) {
  *  Rating: 3
  */
 int satMul3(int x) {
-    return 2;
+    int mul2 = x << 1;
+    int mul3 = mul2 + x;
+    int overflow = ((mul2 ^ x) | (mul3 ^ x)) >> 31;
+    int tmax = ~(1 << 31);
+    int tmin = 1 << 31;
+    return (overflow & ((x >> 31) ^ tmax)) | (~overflow & mul3);
 }
 
 /* 
@@ -83,7 +101,24 @@ int satMul3(int x) {
  *   Rating: 4
  */
 unsigned float_half(unsigned uf) {
-  return 2;
+    unsigned sign = uf & 0x80000000;
+    unsigned exp  = (uf >> 23) & 0xFF;
+    unsigned frac = uf & 0x7FFFFF;
+
+    if (exp == 0xFF) {
+        // NaN or infinity, just return
+        return uf;
+    } else if (exp == 0 || exp == 1) {
+        // Denormalized or very small normalized
+        frac |= (exp << 23); // add in the implicit 1 if exp==1
+        // add rounding bias: if last two bits are 11, round up
+        frac = (frac >> 1) + ((uf & 3) == 3);
+        return sign | frac;
+    } else {
+        // Normalized, just decrement exponent
+        exp = exp - 1;
+        return sign | (exp << 23) | frac;
+    }
 }
 
 /*
@@ -96,9 +131,14 @@ unsigned float_half(unsigned uf) {
  *   Max ops: 20
  *   Rating: 4
  */
-int trueThreeFourths(int x)
-{
-  return 2;
+int trueThreeFourths(int x){
+    int q = x >> 2;          // x / 4
+    int r = x & 3;           // remainder (x % 4)
+    int prod = (q << 1) + q; // q * 3
+    int rem = (r << 1) + r;  // r * 3
+    // Add bias before shifting remainder for negatives
+    int bias = (x >> 31) & 3;
+    return prod + ((rem + bias) >> 2);
 }
 
 
