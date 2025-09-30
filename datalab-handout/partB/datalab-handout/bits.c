@@ -40,21 +40,21 @@ int greatestBitPos(int x) {
  *   Rating: 4
  */
 int satAdd(int x, int y) {
-    int sum = x + y;
-    int signX = x >> 31;
-    int signY = y >> 31;
-    int signS = sum >> 31;
-
-    // detect overflow: when x and y have same sign but sum differs
-    int posOverflow = ~signX & ~signY & signS;
-    int negOverflow = signX & signY & ~signS;
-
-    int tmax = ~(1 << 31);
-    int tmin = 1 << 31;
-
-    return (posOverflow & tmax) |
-           (negOverflow & tmin) |
-           (~(posOverflow | negOverflow) & sum);
+/* Detect add overflow when x,y same sign and sum's sign differs */
+  int sum   = x + y;
+  int sx    = x >> 31;           /* 0 or -1 */
+  int sy    = y >> 31;           /* 0 or -1 */
+  int ss    = sum >> 31;         /* 0 or -1 */
+  int same  = ~(sx ^ sy);        /* all 1s iff same sign */
+  int diffR =  (sx ^ ss);        /* all 1s iff result sign differs from x */
+  int ov    = same & diffR;      /* all 1s on overflow, else 0 */
+  /* Build Tmin/Tmax from small constants */
+  int tmin  = 1 << 31;
+  int tmax  = ~tmin;
+  /* If overflow and x>=0 => Tmax, if overflow and x<0 => Tmin */
+  int sat   = (tmax & ~sx) | (tmin & sx);
+  /* Select sum when no overflow, else saturated */
+  return (sum & ~ov) | (sat & ov);
 }
 
 /*
@@ -67,13 +67,14 @@ int satAdd(int x, int y) {
  *   Rating: 3
  */
 int satMul2(int x) {
-    int doubled = x << 1;
-    // overflow occurs if sign changes after doubling
-    int overflow = (x ^ doubled) >> 31;
-    int tmax = ~(1 << 31);
-    int tmin = 1 << 31;
-
-    return (overflow & ((x >> 31) ^ tmax)) | (~overflow & doubled);
+ /* Overflow if sign(x) differs from sign(2x) */
+  int twice = x << 1;
+  int sx    = x >> 31;          /* original sign */
+  int ov    = (x ^ twice) >> 31;/* all 1s iff signs differ */
+  int tmin  = 1 << 31;
+  int tmax  = ~tmin;
+  int sat   = (tmax & ~sx) | (tmin & sx);
+  return (twice & ~ov) | (sat & ov);
 }
 /*
  * satMul3 - multiplies by 3, saturating to Tmin or Tmax if overflow
@@ -87,14 +88,24 @@ int satMul2(int x) {
  *  Rating: 3
  */
 int satMul3(int x) {
-    int mul2 = x << 1;
-    int mul3 = mul2 + x;
-    // overflow if sign differs between x and mul2, or x and mul3
-    int overflow = ((x ^ mul2) | (x ^ mul3)) >> 31;
-    int tmax = ~(1 << 31);
-    int tmin = 1 << 31;
-
-    return (overflow & ((x >> 31) ^ tmax)) | (~overflow & mul3);
+/* Compute 3x as x + (x<<1); detect overflow on either step */
+  int sx     = x >> 31;
+  int dbl    = x << 1;             /* 2x */
+  int sum    = dbl + x;            /* 3x */
+  /* Overflow in doubling (x + x): signs must differ between x and 2x */
+  int ovA    = (x ^ dbl) >> 31;    /* all 1s iff overflow on doubling */
+  /* Overflow in (2x + x): same-sign add whose result flips sign */
+  int sd     = dbl >> 31;
+  int ss     = sum >> 31;
+  int same   = ~(sd ^ sx);         /* all 1s iff 2x and x have same sign */
+  int diffR  =  (sd ^ ss);         /* all 1s iff result sign differs */
+  int ovB    = same & diffR;       /* all 1s iff overflow on second add */
+  /* If either overflow occurs, saturate by original sign of x */
+  int ov     = ovA | ovB;          /* all 1s if any overflow */
+  int tmin   = 1 << 31;
+  int tmax   = ~tmin;
+  int sat    = (tmax & ~sx) | (tmin & sx);
+  return (sum & ~ov) | (sat & ov);
 }
 
 /* 
