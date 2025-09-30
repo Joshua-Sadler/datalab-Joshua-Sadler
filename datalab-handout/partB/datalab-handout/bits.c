@@ -57,22 +57,23 @@ int satMul2(int x) {
     int tmin = 1 << 31;
     int tmax = ~tmin;
 
-    int top2 = x >> 30;      /* extract top 2 bits of x */
-    int isTmin = !(x ^ tmin);
+    /* Special case Tmin → return 0 */
+    if (!(x ^ tmin)) {
+        return 0;
+    }
 
-    /* Overflow occurs if top2 == 01 (positive overflow) or top2 == 11 (negative overflow) */
-    int posOverflow = !(top2 ^ 1);   /* top2 == 01 */
-    int negOverflow = !(top2 ^ -1);  /* top2 == 11 */
-    int overflow = (posOverflow | negOverflow) & !isTmin;
+    /* Positive overflow: x > Tmax/2 */
+    if (x > tmax >> 1) {
+        return tmax;
+    }
 
-    /* Pick saturation value */
-    int satVal = (posOverflow & tmax) | (negOverflow & tmin);
+    /* Negative overflow: x < Tmin/2 */
+    if (x < tmin >> 1) {
+        return tmin;
+    }
 
-    /* Special case Tmin */
-    int result = isTmin ? 0 : doubled;
-
-    /* If overflow: use satVal, else use doubled (or Tmin special) */
-    return (overflow & satVal) | (~overflow & result);
+    /* Otherwise safe */
+    return doubled;
 }
 /*
  * satMul3 - multiplies by 3, saturating to Tmin or Tmax if overflow
