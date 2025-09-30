@@ -53,6 +53,7 @@ int satAdd(int x, int y) {
  *   Rating: 3
  */
 int satMul2(int x) {
+
     int doubled = x << 1;
     int signX = x >> 31;
     int signD = doubled >> 31;
